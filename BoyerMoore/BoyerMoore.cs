@@ -11,9 +11,12 @@ namespace BoyerMoore
     {
         private string _haystack;
         private string _needle;
-        private int[ , ] lookupTable;
-        private char[] alphabet = new char[] {'a','b','c','d','e','f','g','h','i','j','k','l','m','n','o','p','q','r','s','t','u','v','x','y','z' };
+        private int[ , ] badCharLookupTable;
+        private int[] goodSuffixRuleTable;
+        private char[] alphabet = new char[] {'a','b','c','d','e','f','g','h','i','j','k','l','m','n','o','p','q','r','s','t','u','v','w','x','y','z' };
 
+
+        public int numberOfComparisons = 0;
         public int IndexOf = -1;
 
         public BoyerMoore(string pattern, string text)
@@ -30,7 +33,6 @@ namespace BoyerMoore
 
             while (indexOfCurrentPosition <= (_haystack.Length - _needle.Length))
             {
-                //// Look if we have a match at this position
                 int j = _needle.Length - 1;
 
                 while (j >= 0 && _needle[j] == _haystack[indexOfCurrentPosition + j])
@@ -43,16 +45,22 @@ namespace BoyerMoore
                     IndexOf = indexOfCurrentPosition;
                     return;
                 }
-
-                // Advance to next comparision
-                indexOfCurrentPosition += Math.Max(Lookup(_haystack[indexOfCurrentPosition], j), GoodSuffixRuleValue());
+                else
+                {
+                    string matchingSuffix = _needle.Substring(j);
+                    int goodSuffixRuleSkips = (isPrefix(j)) ?  1 : matchingSuffix.Length ;
+                    // Next comparison
+                    numberOfComparisons++;
+                    indexOfCurrentPosition += Math.Max(Lookup(_haystack[indexOfCurrentPosition], j), goodSuffixRuleSkips);
+                    //indexOfCurrentPosition += Math.Max(Lookup(_haystack[indexOfCurrentPosition], j), goodSuffixRuleTable[_needle.Length - 1 - j]);
+                }
             }
         }
 
 
         private void PreprocessNeedle(string needle)
         {   
-            lookupTable = new int[alphabet.Count(), needle.Count()];
+            badCharLookupTable = new int[alphabet.Count(), needle.Count()];
 
             for(int i = 0; i < alphabet.Count(); i++)
             {
@@ -60,7 +68,7 @@ namespace BoyerMoore
                 {
                     if (j == 0 || alphabet[i] == needle[j])
                     {
-                        lookupTable[i, j] = 0;
+                        badCharLookupTable[i, j] = 0;
                         continue;
                     }
 
@@ -72,20 +80,79 @@ namespace BoyerMoore
                     }
                     while (tempPointer > -1 && alphabet[i] != needle[tempPointer]);
 
-                    lookupTable[i, j] = (tempPointer == -1) ? j: j-tempPointer-1;
+                    badCharLookupTable[i, j] = (tempPointer == -1) ? j: j-tempPointer-1;
                 }
             }
+
+            goodSuffixRuleTable = makeOffsetTable();
         }
 
         private int Lookup(char alphabetChar, int needlePosition)
         {
-
-            return lookupTable[alphabetChar-97, needlePosition];
+            int test = alphabetChar - 97;
+            return badCharLookupTable[alphabetChar-97, needlePosition];
         }
 
         private int GoodSuffixRuleValue()
         {
-            return 0;
+            return 1;
+        }
+
+        /// <summary>
+        /// Returns true if needle[p] is prefix of needle
+        /// </summary>
+        /// <param name="p">Index of first character in matching string</param>
+        /// <returns></returns>
+        private bool isPrefix(int p)
+        {
+            for (int i = p, j = 0; i < _needle.Length; ++i, ++j)
+            {
+                if (_needle[i] != _needle[j])
+                {
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        /// <summary>
+        /// Returns the maximum length of the substring ends at p and is a suffix.
+        /// </summary>
+        /// <param name="p"> the maximum length of the substring ends at p and is a suffix.</param>
+        /// <returns></returns>
+        private int suffixLength(int p)
+        {
+            int lenght = 0;
+
+            for (int i = p, j = _needle.Length - 1; i >= 0 && _needle[i] == _needle[j]; --i, --j)
+            {
+                lenght += 1;
+            }
+
+            return lenght;
+        }
+
+        /// <summary>
+        /// Makes lookup table for good suffix rule
+        /// </summary>
+        private int[] makeOffsetTable()
+        {
+            int[] table = new int[_needle.Length];
+            int lastPrefixPosition = _needle.Length;
+            for (int i = _needle.Length - 1; i >= 0; --i)
+            {
+                if (isPrefix(i + 1))
+                {
+                    lastPrefixPosition = i + 1;
+                }
+                table[_needle.Length - 1 - i] = lastPrefixPosition - i + _needle.Length - 1;
+            }
+            for (int i = 0; i < _needle.Length - 1; ++i)
+            {
+                int suffixLen = suffixLength( i);
+                table[suffixLen] = _needle.Length - 1 - i + suffixLen;
+            }
+            return table;
         }
 
     }

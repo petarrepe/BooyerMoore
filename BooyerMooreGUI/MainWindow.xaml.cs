@@ -19,7 +19,7 @@ namespace BooyerMooreGUI
             BoyerMoore.BoyerMoore bm = new BoyerMoore.BoyerMoore(patternTextBox.Text, haystackTextBox.Text);
 
             if (bm.IndexOf == -1) resultInformationTextBlock.Text = "Nije pronađen uzorak";
-            else resultInformationTextBlock.Text = "Uzorak je pronađen s početnim indeksom "+bm.IndexOf;
+            else resultInformationTextBlock.Text = "Uzorak je pronađen s početnim indeksom "+bm.IndexOf +". \n Broj usporedbi: ="+bm.numberOfComparisons;
         }
     }
 }
