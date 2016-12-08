@@ -1,8 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace BoyerMoore
 {
@@ -49,15 +46,17 @@ namespace BoyerMoore
                 {
                     string matchingSuffix = _needle.Substring(j);
                     int goodSuffixRuleSkips = (isPrefix(j)) ?  1 : matchingSuffix.Length ;
-                    // Next comparison
+
+                    indexOfCurrentPosition += Math.Max(LookupBadCharTable(_haystack[indexOfCurrentPosition], j) + 1, 1);
+                    //indexOfCurrentPosition += Math.Max(LookupBadCharTable(_haystack[indexOfCurrentPosition], j) + 1, goodSuffixRuleSkips);
+                    //indexOfCurrentPosition += Math.Max(LookupBadCharTable(_haystack[indexOfCurrentPosition], j) + 1, goodSuffixRuleTable[_needle.Length - 1 - j]);
+
                     numberOfComparisons++;
-                    indexOfCurrentPosition += Math.Max(Lookup(_haystack[indexOfCurrentPosition], j), goodSuffixRuleSkips);
-                    //indexOfCurrentPosition += Math.Max(Lookup(_haystack[indexOfCurrentPosition], j), goodSuffixRuleTable[_needle.Length - 1 - j]);
                 }
             }
         }
 
-
+      
         private void PreprocessNeedle(string needle)
         {   
             badCharLookupTable = new int[alphabet.Count(), needle.Count()];
@@ -83,15 +82,45 @@ namespace BoyerMoore
                     badCharLookupTable[i, j] = (tempPointer == -1) ? j: j-tempPointer-1;
                 }
             }
-
             goodSuffixRuleTable = makeOffsetTable();
         }
 
-        private int Lookup(char alphabetChar, int needlePosition)
+        /// <summary>
+        /// Performs a lookup on mismatched character table
+        /// </summary>
+        /// <param name="alphabetChar"></param>
+        /// <param name="needlePosition"></param>
+        /// <returns></returns>
+        private int LookupBadCharTable(char alphabetChar, int needlePosition)
         {
             int test = alphabetChar - 97;
             return badCharLookupTable[alphabetChar-97, needlePosition];
         }
+
+        /// <summary>
+        /// Makes lookup table for good suffix rule
+        /// </summary>
+        private int[] makeOffsetTable()
+        {
+            int[] table = new int[_needle.Length];
+            int lastPrefixPosition = _needle.Length;
+
+            for (int i = _needle.Length - 1; i >= 0; --i)
+            {
+                if (isPrefix(i + 1))
+                {
+                    lastPrefixPosition = i + 1;
+                }
+                table[_needle.Length - 1 - i] = lastPrefixPosition - i + _needle.Length - 1;
+            }
+            for (int i = 0; i < _needle.Length - 1; ++i)
+            {
+                int suffixLen = suffixLength(i);
+                table[suffixLen] = _needle.Length - 1 - i + suffixLen;
+            }
+            return table;
+        }
+
 
         private int GoodSuffixRuleValue()
         {
@@ -128,32 +157,9 @@ namespace BoyerMoore
             {
                 lenght += 1;
             }
-
             return lenght;
         }
 
-        /// <summary>
-        /// Makes lookup table for good suffix rule
-        /// </summary>
-        private int[] makeOffsetTable()
-        {
-            int[] table = new int[_needle.Length];
-            int lastPrefixPosition = _needle.Length;
-            for (int i = _needle.Length - 1; i >= 0; --i)
-            {
-                if (isPrefix(i + 1))
-                {
-                    lastPrefixPosition = i + 1;
-                }
-                table[_needle.Length - 1 - i] = lastPrefixPosition - i + _needle.Length - 1;
-            }
-            for (int i = 0; i < _needle.Length - 1; ++i)
-            {
-                int suffixLen = suffixLength( i);
-                table[suffixLen] = _needle.Length - 1 - i + suffixLen;
-            }
-            return table;
-        }
 
     }
 }
