@@ -3,7 +3,7 @@ using System.Linq;
 
 namespace BoyerMoore
 {
-    //case insensitive
+    //case insensitive, no whitespaces or any other characters beside those inside alphabet[]
     public class BoyerMoore
     {
         private string _haystack;
@@ -18,12 +18,15 @@ namespace BoyerMoore
 
         public BoyerMoore(string pattern, string text)
         {
-            _haystack = text;
+            _haystack = text.ToLower();
             _needle = pattern.ToLower();
             PreprocessNeedle(_needle);
             CalculateIndexOf();
         }
 
+        /// <summary>
+        /// Runs the algorithm and performs comparisons
+        /// </summary>
         private void CalculateIndexOf()
         {
             int indexOfCurrentPosition = 0;
@@ -48,8 +51,8 @@ namespace BoyerMoore
                     int goodSuffixRuleSkips = (isPrefix(j)) ?  1 : matchingSuffix.Length;
 
                     indexOfCurrentPosition += Math.Max(LookupBadCharTable(_haystack[indexOfCurrentPosition + _needle.Length - 1], j) + 1, goodSuffixRuleSkips);
-                    //indexOfCurrentPosition += Math.Max(LookupBadCharTable(_haystack[indexOfCurrentPosition], j) + 1, goodSuffixRuleSkips);
-                    //indexOfCurrentPosition += Math.Max(LookupBadCharTable(_haystack[indexOfCurrentPosition], j) + 1, goodSuffixRuleTable[_needle.Length - 1 - j]);
+
+                    //indexOfCurrentPosition += Math.Max(LookupBadCharTable(_haystack[indexOfCurrentPosition + _needle.Length - 1], j) + 1, goodSuffixRuleTable[_needle.Length - 1 - j]);
 
                     numberOfComparisons++;
                 }
@@ -79,7 +82,7 @@ namespace BoyerMoore
                     }
                     while (tempPointer > -1 && alphabet[i] != needle[tempPointer]);
 
-                    badCharLookupTable[i, j] = (tempPointer == -1) ? j: j-tempPointer-1;
+                    badCharLookupTable[i, j] = (tempPointer == -1) ? j : j-tempPointer-1;
                 }
             }
             goodSuffixRuleTable = makeOffsetTable();
@@ -121,11 +124,6 @@ namespace BoyerMoore
             return table;
         }
 
-
-        private int GoodSuffixRuleValue()
-        {
-            return 1;
-        }
 
         /// <summary>
         /// Returns true if needle[p] is prefix of needle
