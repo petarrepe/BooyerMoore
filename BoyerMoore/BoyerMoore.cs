@@ -45,9 +45,9 @@ namespace BoyerMoore
                 else
                 {
                     string matchingSuffix = _needle.Substring(j);
-                    int goodSuffixRuleSkips = (isPrefix(j)) ?  1 : matchingSuffix.Length ;
+                    int goodSuffixRuleSkips = (isPrefix(j)) ?  1 : matchingSuffix.Length;
 
-                    indexOfCurrentPosition += Math.Max(LookupBadCharTable(_haystack[indexOfCurrentPosition], j) + 1, 1);
+                    indexOfCurrentPosition += Math.Max(LookupBadCharTable(_haystack[indexOfCurrentPosition + _needle.Length - 1], j) + 1, goodSuffixRuleSkips);
                     //indexOfCurrentPosition += Math.Max(LookupBadCharTable(_haystack[indexOfCurrentPosition], j) + 1, goodSuffixRuleSkips);
                     //indexOfCurrentPosition += Math.Max(LookupBadCharTable(_haystack[indexOfCurrentPosition], j) + 1, goodSuffixRuleTable[_needle.Length - 1 - j]);
 
